@@ -35,7 +35,6 @@ public class UserService {
         //Hint: Take out all the Webseries from the WebRepository
 
         User user= userRepository.findById(userId).get();
-        if(user==null) return 0;
 
         int cnt=0;
         int ageLimit =user.getAge();
@@ -57,7 +56,7 @@ public class UserService {
                 }
             }
         }else{
-            cnt=webSeries.size();
+            cnt = webSeries.size();
         }
 
         return cnt;

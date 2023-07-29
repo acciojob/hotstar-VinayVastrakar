@@ -26,8 +26,7 @@ public class WebSeriesService {
         if(webSeriesRepository.findBySeriesName(webSeriesEntryDto.getSeriesName())!=null){
             throw new Exception("Series is already present");
         }
-        ProductionHouse productionHouse=
-                productionHouseRepository.findById(webSeriesEntryDto.getProductionHouseId()).get();
+        ProductionHouse productionHouse= productionHouseRepository.findById(webSeriesEntryDto.getProductionHouseId()).get();
 
         WebSeries webSeries = new WebSeries();
         webSeries.setSeriesName(webSeriesEntryDto.getSeriesName());
