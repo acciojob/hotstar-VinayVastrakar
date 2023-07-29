@@ -7,9 +7,11 @@ import com.driver.model.SubscriptionType;
 import com.driver.model.User;
 import com.driver.repository.SubscriptionRepository;
 import com.driver.repository.UserRepository;
+import jdk.internal.loader.AbstractClassLoaderValue;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -25,8 +27,27 @@ public class SubscriptionService {
     public Integer buySubscription(SubscriptionEntryDto subscriptionEntryDto){
 
         //Save The subscription Object into the Db and return the total Amount that user has to pay
+        Subscription subscription= new Subscription();
+        subscription.setSubscriptionType(subscriptionEntryDto.getSubscriptionType());
+        subscription.setNoOfScreensSubscribed(subscriptionEntryDto.getNoOfScreensRequired());
+        int amount=0;
 
-        return null;
+        if(subscriptionEntryDto.getSubscriptionType()== SubscriptionType.BASIC){
+            amount= 200*subscription.getNoOfScreensSubscribed()+500;
+        } else if (subscriptionEntryDto.getSubscriptionType()== SubscriptionType.ELITE) {
+            amount= 250* subscription.getNoOfScreensSubscribed()+800;
+        }else {
+            amount= 350* subscription.getNoOfScreensSubscribed()+1000;
+        }
+
+        subscription.setTotalAmountPaid(amount);
+        User user = userRepository.findById(subscriptionEntryDto.getUserId()).get();
+        subscription.setUser(user);
+        user.setSubscription(subscription);
+        userRepository.save(user);
+
+
+        return amount;
     }
 
     public Integer upgradeSubscription(Integer userId)throws Exception{
@@ -35,15 +56,51 @@ public class SubscriptionService {
         //In all other cases just try to upgrade the subscription and tell the difference of price that user has to pay
         //update the subscription in the repository
 
-        return null;
+        User user = userRepository.findById(userId).get();
+        if(user.getSubscription().getSubscriptionType()== SubscriptionType.ELITE){
+            throw new Exception("Already the best Subscription");
+        }
+        int extraPrice=0;
+
+        if(user.getSubscription().getSubscriptionType()== SubscriptionType.BASIC){
+            Subscription subscription = user.getSubscription();
+            int amount =subscription.getTotalAmountPaid();
+            int screens= subscription.getNoOfScreensSubscribed();
+
+            int extra = 250*screens+ 800;
+            subscription.setSubscriptionType(SubscriptionType.PRO);
+            subscription.setTotalAmountPaid(extra);
+            extraPrice = extra-amount;
+            user.setSubscription(subscription);
+            userRepository.save(user);
+        }else{
+            Subscription subscription = user.getSubscription();
+            int amount =subscription.getTotalAmountPaid();
+            int screens= subscription.getNoOfScreensSubscribed();
+
+            int extra = 350*screens+ 1000;
+            subscription.setSubscriptionType(SubscriptionType.PRO);
+            subscription.setTotalAmountPaid(extra);
+            extraPrice = extra-amount;
+            user.setSubscription(subscription);
+            userRepository.save(user);
+        }
+
+        return extraPrice;
     }
 
     public Integer calculateTotalRevenueOfHotstar(){
 
         //We need to find out total Revenue of hotstar : from all the subscriptions combined
         //Hint is to use findAll function from the SubscriptionDb
+        int total=0;
+        List<Subscription> subscriptions= subscriptionRepository.findAll();
 
-        return null;
+        for(Subscription subscription : subscriptions)
+            total+=subscription.getTotalAmountPaid();
+
+
+        return total;
     }
 
 }

@@ -7,6 +7,7 @@ import com.driver.model.User;
 import com.driver.model.WebSeries;
 import com.driver.repository.UserRepository;
 import com.driver.repository.WebSeriesRepository;
+import jdk.internal.loader.AbstractClassLoaderValue;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -25,7 +26,7 @@ public class UserService {
     public Integer addUser(User user){
 
         //Jut simply add the user to the Db and return the userId returned by the repository
-        return null;
+        return userRepository.save(user).getId();
     }
 
     public Integer getAvailableCountOfWebSeriesViewable(Integer userId){
@@ -33,8 +34,33 @@ public class UserService {
         //Return the count of all webSeries that a user can watch based on his ageLimit and subscriptionType
         //Hint: Take out all the Webseries from the WebRepository
 
+        User user= userRepository.findById(userId).get();
+        if(user==null) return 0;
 
-        return null;
+        int cnt=0;
+        int ageLimit =user.getAge();
+        SubscriptionType type= user.getSubscription().getSubscriptionType();
+
+        List<WebSeries> webSeries = webSeriesRepository.findAll();
+
+        if(type == SubscriptionType.BASIC){
+            for(WebSeries webseries: webSeries){
+                if(webseries.getAgeLimit()<= ageLimit && webseries.getSubscriptionType()== SubscriptionType.BASIC){
+                    cnt++;
+                }
+            }
+        } else if (type == SubscriptionType.PRO) {
+            for(WebSeries webseries: webSeries){
+                if(webseries.getAgeLimit()<= ageLimit && (webseries.getSubscriptionType()== SubscriptionType.BASIC||
+                        webseries.getSubscriptionType()== SubscriptionType.PRO)){
+                    cnt++;
+                }
+            }
+        }else{
+            cnt=webSeries.size();
+        }
+
+        return cnt;
     }
 
 
